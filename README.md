@@ -1,10 +1,17 @@
 # drone-plugin-starter
 
-Starter project for creating Drone plugins.
+Starter project for creating Drone plugins. Plugins are packaged in docker images and are applications built to read 
+environment variables passed to them by a Drone executor. This project serves as a skeleton to writing a drone plugin in
+go using (urfave/cli)[https://github.com/urfave/cli]] and configuring the flags to accept the DRONE_ and PLUGIN_ 
+prefixed environment parameters. A full list of the DRONE_ params can be found in the (documentation)
+[https://docker-runner.docs.drone.io/configuration/environment/variables/] and the PLUGIN_ params are passed in via 
+the `settings:` YAML field on your step calling the plugin.
 
-### Metadata
+### Metadata via Environment variables
 
-Build and Repository metadata are prefixed with `DRONE_` and sent to the plugin at runtime. The full list of available parameters are already included in the `main.go` file as command line flags. You should remove un-used parameters from the list so that one can easily see which parameters are used by which plugins.
+Build and Repository metadata are prefixed with `DRONE_` and sent to the plugin at runtime. The full list of available 
+parameters are already included in the `flags.go` file as command line flags. You should remove un-used parameters from 
+the list so that one can easily see which parameters are used by which plugins.
 
 Example parameters:
 
@@ -12,23 +19,22 @@ Example parameters:
 cli.IntFlag{
     Name:   "build.number",
     Usage:  "build number",
-    EnvVar: "DRONE_BUILD_NUMBER",
+    EnvVars: []string{"DRONE_BUILD_NUMBER"},
 },
 cli.StringFlag{
     Name:   "build.status",
     Usage:  "build status",
     Value:  "success",
-    EnvVar: "DRONE_BUILD_STATUS",
+    EnvVars: []string{"DRONE_BUILD_STATUS"},
 },
 ```
 
 ### Parameters
 
-Plugin parameters are defined in the yaml file:
+Plugin settings are defined in the yaml file:
 
 ```
-slack:
-  channel: dev
+settings:
   username: drone
 ```
 
@@ -39,16 +45,16 @@ PLUGIN_CHANNEL=dev
 PLUGIN_USERNAME=drone
 ```
 
-These parameters can be retrieved using `cli.Flag` as seen below:
+Plugin settings can be retrieved using `cli.Flag` as seen below:
 
 ```
 cli.StringFlag{
     Usage:  "slack channel",
-    EnvVar: "PLUGIN_CHANNEL",
+    EnvVars: []{"PLUGIN_CHANNEL"},
 },
 cli.StringFlag{
-    Usage:  "slack username",
-    EnvVar: "PLUGIN_USERNAME",
+    Usage:  []string{"slack username"},
+    EnvVars: []string{"PLUGIN_USERNAME"},
 },
 ```
 
@@ -59,7 +65,7 @@ Sensitive fields should not be specified in the yaml file. Instead they are pass
 ```
 cli.StringFlag{
     Usage:  "slack api token",
-    EnvVar: "SLACK_TOKEN",
+    EnvVars: []string{"SLACK_TOKEN"},
 },
 ```
 
@@ -81,4 +87,4 @@ Please create plugins that are easily runnable from the command line. This makes
 
 ### Vendoring
 
-Please vendor dependencies in a manner compatible with `GOVENDOREXPERIMENT`. All official drone plugins should use [govend](https://github.com/govend/govend) with the `--prune` flag.
+Please vendor dependencies in a manner compatible with go modules. All official drone plugins should use [go mod vendor](https://blog.golang.org/using-go-modules).
